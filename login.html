@@ -1,0 +1,354 @@
+<!DOCTYPE HTML>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0 minimal-ui"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+
+<link rel="icon" type="image/png" href="images/splash/android-chrome-192x192.png" sizes="192x192">
+<link rel="apple-touch-icon" sizes="196x196" href="images/splash/apple-touch-icon-196x196.png">
+<link rel="apple-touch-icon" sizes="180x180" href="images/splash/apple-touch-icon-180x180.png">
+<link rel="apple-touch-icon" sizes="152x152" href="images/splash/apple-touch-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="144x144" href="images/splash/apple-touch-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="120x120" href="images/splash/apple-touch-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="114x114" href="images/splash/apple-touch-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="76x76" href="images/splash/apple-touch-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="72x72" href="images/splash/apple-touch-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="60x60" href="images/splash/apple-touch-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="57x57" href="images/splash/apple-touch-icon-57x57.png">  
+<link rel="icon" type="image/png" href="images/splash/favicon-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="images/splash/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="images/splash/favicon-16x16.png" sizes="16x16">
+<link rel="shortcut icon" href="images/splash/favicon.ico" type="image/x-icon" /> 
+    
+<title>Epsilon 4.0</title>
+
+<link href="styles/style.css"           rel="stylesheet" type="text/css">
+<link href="styles/menus.css"           rel="stylesheet" type="text/css">
+<link href="styles/framework.css"       rel="stylesheet" type="text/css">
+<link href="styles/font-awesome.css"    rel="stylesheet" type="text/css">
+<link href="styles/animate.css"         rel="stylesheet" type="text/css">
+<link href="css/ajax_loader.css"         rel="stylesheet" type="text/css">
+
+
+
+<script type="text/javascript" src="scripts/jquery.js"></script>
+<script type="text/javascript" src="scripts/jqueryui.js"></script>
+<script type="text/javascript" src="scripts/framework-plugins.js"></script>
+<script type="text/javascript" src="scripts/custom.js"></script>
+<script type="text/javascript" src="scripts/ajax_loader.js"></script>
+<script>
+ function loginClicked(){
+  
+     var phonenumber=document.getElementById("phonenumber").value;
+	 var pass=document.getElementById("password").value;
+		if(phonenumber=="" || phonenumber=="Phone")
+		{
+		  alert("Please enter Phone Number");
+		  document.getElementById("phonenumber").focus();
+		}
+		else if(pass=="" || pass=="password"){
+		alert("Please enter password");
+		document.getElementById("password").focus();
+		
+		}else
+		{
+		   login(phonenumber);
+		}
+	
+  }
+  
+  
+  function login(phoneNumber)
+	{
+	     var serverName=getServerIP();
+	    ajax1=  $.ajax({
+        	url: serverName+"VehicleTrackerService/mobileService/user/login/phone?phone="+phoneNumber +"&password="+document.getElementById("password").value,
+			type: "GET",
+			contentType: false,
+    	    cache: false,
+			 async: false,
+    	    processData: false,
+    	    beforeSend: ajaxindicatorstart('Logging in.. please wait..'),
+			success: function(data)
+			{
+			   
+			    var status = CheckStatus(data.statusCode);
+				if (status == "success") {
+			 	localStorage.userID=data.userID;
+				localStorage.phoneNumber=data.phoneNumber;
+				localStorage.userName=data.userName;
+				localStorage.organizationID=data.organizationID;
+				localStorage.userType=data.userType;
+				localStorage.loggedIn=1;
+				localStorage.organizationName=data.organizationName;
+				localStorage.password=document.getElementById("password").value;
+				localStorage.email=data.email;
+				
+				//updateLoginSuccess();
+				 ajaxindicatorstop();
+					if(data.userType==65){
+					 	document.location.href = 'adminHomeScreen.html?phoneNumber=' + data.phoneNumber +"&userName=" + data.userName + "&userType=" + data.userType;
+					}else if(data.userType==67){
+					 	document.location.href = 'corporatorHomeScreen.html?phoneNumber=' + data.phoneNumber +"&userName=" + data.userName + "&userType=" + data.userType;
+					}else if(data.userType==69){
+					 	document.location.href = 'engineerHomeScreen.html?phoneNumber=' + data.phoneNumber +"&userName=" + data.userName + "&userType=" + data.userType;
+					
+					}else if(data.userType==68){
+					 	document.location.href = 'driverHomeScreen.html?phoneNumber=' + data.phoneNumber +"&userName=" + data.userName + "&userType=" + data.userType;
+					}else if(data.userType==80){
+					if(localStorage.busStopLocIDPickup && parseInt(localStorage.busStopLocIDPickup) >0 && localStorage.busStopLocIDDrop && parseInt(localStorage.busStopLocIDDrop) >0){
+					 	document.location.href = 'parentHomeScreen.html?phoneNumber=' + data.phoneNumber +"&userName=" + data.userName + "&userType=" + data.userType;
+					}else{
+					//Try to fetch the data from server, if its not present in server, then move the user to update screen
+					
+										
+										 ajax2=  $.ajax({
+								url: serverName+"VehicleTrackerService/mobileService/parent/getParentDetails?userID="+localStorage.userID,
+								type: "GET",
+								contentType: false,
+								cache: false,
+								processData: false,
+								 async: false,
+								beforeSend: ajaxindicatorstart('Fetching you bus stop details.. please wait..'),
+								success: function(data1)
+								{
+								   
+									var status = CheckStatus(data1.statusCode);
+									if (status == "success" ) 
+									{
+										
+										ajaxindicatorstop();
+										if(data1.busStopLocIDPickup  && parseInt(data1.busStopLocIDPickup)>0)
+										{
+											localStorage.busStopLocIDPickup=data1.busStopLocIDPickup;
+											localStorage.busStopLocNamePickup=data1.busStopLocNamePickup;
+										}
+										if(data1.busStopLocIDDrop && parseInt(data1.busStopLocIDDrop)>0 )
+										{
+											localStorage.busStopLocIDDrop=data1.busStopLocIDDrop;									
+											localStorage.busStopLocNameDrop=data1.busStopLocNameDrop;
+										}
+										
+							
+										if(parseInt(localStorage.busStopLocIDPickup)>0 && parseInt(localStorage.busStopLocIDDrop)>0){
+											document.location.href = 'parentHomeScreen.html?phoneNumber=' + data.phoneNumber +"&userName=" + data.userName + "&userType=" + data.userType;
+										}
+										else{
+											document.location.href = "parentBusStopSelection.html";
+										}
+											
+								 }else{
+									ajaxindicatorstop();
+										alert(status);
+									}
+								
+								},
+								error: function() 
+								{
+								  ajaxindicatorstop();
+										alert("Failed to connect to server, Kindly check your internet connection");
+								} 	        
+						   });
+					
+					
+						
+					}
+			    }
+				}
+			    else {
+				 ajaxindicatorstop();
+			        alert(status);
+			    }
+		    },
+		  	error: function() 
+	    	{
+	    	  ajaxindicatorstop();
+			        alert("Failed to connect to server, Kindly check your internet connection");
+	    	} 	        
+	   });
+	}
+
+</script>
+</head>
+
+<body > 
+    
+<div id="preloader">
+	<div id="status">
+        <div class="preloader-logo"></div>
+        <h3 class="center-text">Welcome</h3>
+        <p class="center-text smaller-text">
+            We're loading the content, give us a second. This won't take long!
+        </p>
+    </div>
+</div>
+    
+<div id="header-fixed" class="header-dark">
+
+
+    <a class="header-logo" href="#"></a>
+
+    
+    <div class="header-menu-overlay"></div>
+    <div class="header-menu header-menu-dark">
+        <a href="index.html" class="active-header-item"><i class="fa fa-home"></i>Homepage<i class="fa fa-circle"></i></a>
+        <a href="features-typography.html"><i class="fa fa-cog"></i>Features<i class="fa fa-circle"></i></a>
+        <a href="gallery-square.html"><i class="fa fa-camera"></i>Media<i class="fa fa-circle"></i></a>
+        <a href="page-sitemap.html"><i class="fa fa-file-o"></i>SiteMap<i class="fa fa-circle"></i></a>
+        <a href="contact.html"><i class="fa fa-envelope-o"></i>Contact<i class="fa fa-circle"></i></a>
+        <a href="#" class="close-header-menu"><i class="fa fa-times"></i>Close<i class="fa fa-circle"></i></a>
+    </div> 
+</div> 
+    
+        
+<div id="footer-fixed" class="footer-menu footer-dark disabled">
+    <a href="index.html" class="active-footer-item footer-mobile"><i class="fa fa-home"></i>Home</a>
+    <a href="features-typography.html" class="footer-mobile"><i class="fa fa-cog"></i>Features</a>
+    <a href="gallery-square.html" class="footer-mobile"><i class="fa fa-camera"></i>Media</a>
+    <a href="page-sitemap.html" class="footer-mobile"><i class="fa fa-navicon"></i>Sitemap</a>
+    <a href="contact.html" class="footer-mobile"><i class="fa fa-envelope-o"></i>Contact</a>
+    <a href="#" class="footer-tablet"><i class="fa fa-phone"></i>Call</a>
+    <a href="#" class="footer-tablet"><i class="fa fa-comments"></i>Text</a>
+    <a href="#" class="footer-tablet"><i class="fa fa-facebook"></i>Like</a>
+    <a href="#" class="footer-tablet"><i class="fa fa-twitter"></i>Follow</a>
+</div>
+    
+<div class="gallery-fix"></div> <!-- Important for all pages that have galleries or portfolios -->
+            
+<div class="all-elements">
+    <div class="snap-drawers">
+        
+        
+        <!--Right Sidebar -->
+        
+                
+        
+        <div id="content" class="snap-content">      
+            <div class="header-clear"></div>
+            <div class="pageapp-login bg-5 cover-screen">    
+                <div class="pageapp-login-content cover-center">
+                    <div class="unboxed-layout">
+                        <a class="pageapp-login-logo" href="#"></a>
+                        <div class="pageapp-login-field">
+                            <i class="fa fa-phone"></i>
+                            <input type="number" value="Phone" name="phonenumber" id="phonenumber" onFocus="if (this.value=='Phone') this.value = ''" onBlur="if (this.value=='') this.value = 'Phone'">
+                        </div>
+                        <div class="pageapp-login-field">
+                            <i class="fa fa-lock"></i>
+                            <input type="password" value="password" id="password" onFocus="if (this.value=='password') this.value = ''" onBlur="if (this.value=='') this.value = 'password'">
+                        </div>
+                        <a href="javascript:loginClicked()" class="pageapp-login-button button button-small button-green button-fullscreen">Login</a>
+						<!--<a href="register.html" > <i class="fa fa-code"></i> Don't have an account? Sign up!</a>-->
+                      <!-- <div class="decoration"></div>
+					   
+                        <a href="#" class="facebook-login facebook-color"><i class="fa fa-facebook"></i>Login with Facebook</a>
+                        <a href="#" class="twitter-login twitter-color no-bottom"><i class="fa fa-twitter"></i>Signin with Twitter</a> -->                   
+                    </div>
+                </div>
+                <div class="overlay bg-black"></div>
+                <!--<a href="pageapp-login2.html" class="left-button"><i class="fa fa-square"></i>Boxed Version</a>
+                <a href="page-login.html" class="right-button">Page Version <i class="fa fa-star"></i></a>-->
+            </div>   
+            
+        </div>
+    </div>  
+    <a href="#" class="back-to-top-badge"><i class="fa fa-caret-up"></i>Back to top</a>
+</div>
+    
+    
+<!--Fly up share box and notifications go here -->
+<!--These are the only features that should be placed outside the all-elements class-->
+    
+<div class="share-bottom">
+    <h3>Share Page</h3>
+    <div class="share-socials-bottom">
+        <a href="https://www.facebook.com/sharer/sharer.php?u=http://www.themeforest.net/">
+            <i class="fa fa-facebook facebook-color"></i>
+            Facebook
+        </a>
+        <a href="https://twitter.com/home?status=Check%20out%20ThemeForest%20http://www.themeforest.net">
+            <i class="fa fa-twitter twitter-color"></i>
+            Twitter
+        </a>
+        <a href="https://plus.google.com/share?url=http://www.themeforest.net">
+            <i class="fa fa-google-plus google-color"></i>
+            Google
+        </a>
+
+        <a href="https://pinterest.com/pin/create/button/?url=http://www.themeforest.net/&media=https://0.s3.envato.com/files/63790821/profile-image.jpg&description=Themes%20and%20Templates">
+            <i class="fa fa-pinterest-p pinterest-color"></i>
+            Pinterest
+        </a>
+        <a href="sms:">
+            <i class="fa fa-comment-o sms-color"></i>
+            Text
+        </a>
+        <a href="mailto:?&subject=Check this page out!&body=http://www.themeforest.net">
+            <i class="fa fa-envelope-o mail-color"></i>
+            Email
+        </a>
+        <div class="clear"></div>
+    </div>
+    <a href="#" class="close-share-bottom">Close</a>
+</div>
+    
+<div class="top-notification-1 top-notification bg-blue-dark">
+    <h4>Did you know?</h4>
+    <p>
+        Easy way to make sure your messages get read!
+    </p>
+    <a href="#" class="close-top-notification"><i class="fa fa-times"></i></a>
+</div>
+<div class="bottom-notification-1 bottom-notification bg-green-dark">
+    <h4>Did you know?</h4>
+    <p>
+        Easy way to make sure your messages get read!
+    </p>
+    <a href="#" class="close-bottom-notification"><i class="fa fa-times"></i></a>
+</div> 
+<div class="bottom-notification-2 bottom-notification bg-orange-dark timeout-notification">
+    <h4>Timeout: 5 Seconds</h4>
+    <p>
+        I'll go away on my own after a few seconds!
+    </p>
+</div>
+<div class="top-notification-2 top-notification bg-red-dark timeout-notification">
+    <h4>Timeout: 5 Seconds</h4>
+    <p>
+        I'll go away on my own after a few seconds!
+    </p>
+</div>
+    
+</body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
